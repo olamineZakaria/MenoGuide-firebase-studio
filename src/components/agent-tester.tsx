@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { analyzeJournal, MaestroOutput } from "@/ai/flows/maestro-flow";
 import { getNutritionAdvice, NutritionExpertOutput } from "@/ai/flows/nutrition-expert-flow";
-import { getCoachingResponse, LifeCoachOutput } from "@/ai/flows/life-coach-flow";
+import { getCoachingResponse } from "@/ai/flows/life-coach-flow";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
@@ -12,10 +12,16 @@ import { Label } from "@/components/ui/label";
 import { Loader2 } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 import { Checkbox } from "@/components/ui/checkbox";
+import { ScrollArea } from "./ui/scroll-area";
 
 const allSymptoms = [
     "Hot Flushes", "Night Sweats", "Weight Gain", "Mood Swings", "Brain Fog", "Poor Sleep"
 ];
+
+interface CoachMessage {
+    role: 'user' | 'coach';
+    content: string;
+}
 
 export function AgentTester() {
     // Maestro State
@@ -30,8 +36,10 @@ export function AgentTester() {
     const [isNutritionLoading, setIsNutritionLoading] = useState(false);
 
     // Life Coach State
-    const [userStatement, setUserStatement] = useState("I feel so overwhelmed and irritable all the time. I snap at everyone.");
-    const [coachResult, setCoachResult] = useState<LifeCoachOutput | null>(null);
+    const [coachHistory, setCoachHistory] = useState<CoachMessage[]>([
+        { role: 'coach', content: "Welcome! I'm here to listen. What's on your mind today?" }
+    ]);
+    const [coachInput, setCoachInput] = useState("");
     const [isCoachLoading, setIsCoachLoading] = useState(false);
 
     const handleMaestro = async () => {
@@ -66,16 +74,38 @@ export function AgentTester() {
         );
     }
 
-    const handleCoach = async () => {
+    const handleCoachSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!coachInput.trim() || isCoachLoading) return;
+
+        const newUserMessage: CoachMessage = { role: 'user', content: coachInput };
+        
+        const currentHistoryWithUserMessage = [...coachHistory, newUserMessage];
+        setCoachHistory(currentHistoryWithUserMessage);
+        const historyForPrompt = coachHistory; // Send history before new user message
+        setCoachInput("");
         setIsCoachLoading(true);
-        setCoachResult(null);
+
         try {
-            const result = await getCoachingResponse({ userStatement });
-            setCoachResult(result);
+            const historyString = historyForPrompt
+                .map(msg => `${msg.role === 'coach' ? 'Coach' : 'User'}: ${msg.content}`)
+                .join('\n');
+
+            const result = await getCoachingResponse({ 
+                userStatement: newUserMessage.content,
+                chatHistory: historyString,
+            });
+            
+            const coachMessage: CoachMessage = { role: 'coach', content: result.coachResponse };
+            setCoachHistory(prev => [...prev, coachMessage]);
+
         } catch (error) {
             console.error("Life Coach Error:", error);
+            const errorMessage: CoachMessage = { role: 'coach', content: "Sorry, I'm having trouble connecting right now." };
+            setCoachHistory(prev => [...prev, errorMessage]);
+        } finally {
+            setIsCoachLoading(false);
         }
-        setIsCoachLoading(false);
     };
 
     return (
@@ -157,21 +187,46 @@ export function AgentTester() {
             <Card>
                 <CardHeader>
                     <CardTitle>3. Life Coach</CardTitle>
-                    <CardDescription>Enter a statement to receive a reflective coaching question.</CardDescription>
+                    <CardDescription>Have a reflective coaching conversation.</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                    <div className="space-y-2">
-                        <Label htmlFor="statement">Your Statement</Label>
-                        <Textarea id="statement" value={userStatement} onChange={(e) => setUserStatement(e.target.value)} rows={5} placeholder="I feel so overwhelmed..." />
-                    </div>
-                    <Button onClick={handleCoach} disabled={isCoachLoading} className="w-full">
-                        {isCoachLoading ? <Loader2 className="animate-spin" /> : "Get Coaching Question"}
-                    </Button>
-                    {coachResult && (
-                        <div className="p-4 bg-muted rounded-md mt-4">
-                            <p className="text-sm italic">"{coachResult.coachResponse}"</p>
+                     <ScrollArea className="h-64 w-full rounded-md border p-4">
+                        <div className="space-y-4">
+                            {coachHistory.map((msg, index) => (
+                                <div key={index} className={`flex items-start gap-2 ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
+                                    {msg.role === 'coach' && <div className="flex h-8 w-8 shrink-0 rounded-full bg-primary/20 items-center justify-center text-primary">C</div>}
+                                    <div className={`max-w-[80%] rounded-lg px-3 py-2 text-sm ${
+                                        msg.role === 'user' 
+                                        ? 'bg-primary text-primary-foreground' 
+                                        : 'bg-muted'
+                                    }`}>
+                                        {msg.role === 'coach' ? <p className="italic">"{msg.content}"</p> : <p>{msg.content}</p>}
+                                    </div>
+                                     {msg.role === 'user' && <div className="flex h-8 w-8 shrink-0 rounded-full bg-muted items-center justify-center">U</div>}
+                                </div>
+                            ))}
+                            {isCoachLoading && (
+                                <div className="flex items-start gap-2">
+                                     <div className="flex h-8 w-8 shrink-0 rounded-full bg-primary/20 items-center justify-center text-primary">C</div>
+                                    <div className="rounded-lg bg-muted px-3 py-2">
+                                       <Loader2 className="w-5 h-5 animate-spin" />
+                                    </div>
+                                </div>
+                            )}
                         </div>
-                    )}
+                    </ScrollArea>
+                    <form onSubmit={handleCoachSubmit} className="flex items-center gap-2">
+                        <Input 
+                            value={coachInput} 
+                            onChange={(e) => setCoachInput(e.target.value)} 
+                            placeholder="Share your thoughts..."
+                            disabled={isCoachLoading}
+                            autoComplete="off"
+                        />
+                        <Button type="submit" disabled={isCoachLoading}>
+                            {isCoachLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : "Send"}
+                        </Button>
+                    </form>
                 </CardContent>
             </Card>
         </div>
