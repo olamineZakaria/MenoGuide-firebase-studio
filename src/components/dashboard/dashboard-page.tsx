@@ -16,6 +16,7 @@ import {
 } from "@/components/ui/dialog";
 import { AgentTester } from "../agent-tester";
 import { ScrollArea } from "../ui/scroll-area";
+import { NutritionCorner } from "./nutrition-corner";
 
 export function DashboardPage() {
   return (
@@ -76,6 +77,7 @@ export function DashboardPage() {
         </div>
         <div className="space-y-8">
           <WeatherWidget />
+          <NutritionCorner />
           <CommunityEvents />
         </div>
       </div>
