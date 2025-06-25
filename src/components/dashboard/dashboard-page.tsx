@@ -1,7 +1,7 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { HeartPulse } from "lucide-react";
+import { HeartPulse, TestTube } from "lucide-react";
 import { CommunityEvents } from "./community-events";
 import { Recommendations } from "./recommendations";
 import { WeatherWidget } from "./weather-widget";
@@ -14,6 +14,8 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import { AgentTester } from "../agent-tester";
+import { ScrollArea } from "../ui/scroll-area";
 
 export function DashboardPage() {
   return (
@@ -27,31 +29,54 @@ export function DashboardPage() {
             Here&apos;s your daily menopause wellness overview.
           </p>
         </div>
-        <Dialog>
-          <DialogTrigger asChild>
-            <Button size="lg">
-              <HeartPulse className="mr-2" />
-              Track Your Symptoms
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="sm:max-w-[425px]">
-            <DialogHeader>
-              <DialogTitle>Daily Symptom Check-in</DialogTitle>
-              <DialogDescription>
-                Log your symptoms to get personalized insights.
-              </DialogDescription>
-            </DialogHeader>
-            <SymptomTracker />
-          </DialogContent>
-        </Dialog>
+        <div className="flex items-center gap-2">
+          <Dialog>
+            <DialogTrigger asChild>
+              <Button variant="outline">
+                <TestTube className="mr-2" />
+                Test Agents
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="max-w-3xl">
+              <DialogHeader>
+                <DialogTitle>AI Agent Testing Scenarios</DialogTitle>
+                <DialogDescription>
+                  Use these forms to test the responses of the different AI
+                  agents. The dialog is scrollable.
+                </DialogDescription>
+              </DialogHeader>
+              <ScrollArea className="h-[70vh] pr-6">
+                <AgentTester />
+              </ScrollArea>
+            </DialogContent>
+          </Dialog>
+
+          <Dialog>
+            <DialogTrigger asChild>
+              <Button size="lg">
+                <HeartPulse className="mr-2" />
+                Track Your Symptoms
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-[425px]">
+              <DialogHeader>
+                <DialogTitle>Daily Symptom Check-in</DialogTitle>
+                <DialogDescription>
+                  Log your symptoms to get personalized insights.
+                </DialogDescription>
+              </DialogHeader>
+              <SymptomTracker />
+            </DialogContent>
+          </Dialog>
+        </div>
       </div>
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <div className="lg:col-span-2 space-y-8">
-            <Recommendations />
+          <Recommendations />
         </div>
         <div className="space-y-8">
-            <WeatherWidget />
-            <CommunityEvents />
+          <WeatherWidget />
+          <CommunityEvents />
         </div>
       </div>
     </div>
