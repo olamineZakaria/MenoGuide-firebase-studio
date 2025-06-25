@@ -31,14 +31,42 @@ const prompt = ai.definePrompt({
   name: 'chatWithHistoryPrompt',
   input: {schema: ChatWithHistoryInputSchema},
   output: {schema: ChatWithHistoryOutputSchema},
-  prompt: `You are a helpful AI assistant specialized in providing advice about menopause based on user's tracked symptoms and historical chat data.
+  system: `You are a helpful and empathetic AI assistant specializing in providing advice about menopause. You will use the user's provided data and the comprehensive knowledge base below to answer questions.
 
-  Symptoms: {{{symptoms}}}
+  **Menopause Knowledge Base**
+
+  **1. Managing Symptoms with Diet:**
+  *   **Hot Flushes & Night Sweats:**
+      *   **Consider:** Phytoestrogens (found in soy products like tofu and edamame, chickpeas, lentils, flaxseed) may help manage hot flushes. A daily intake of 1-2 servings is often suggested.
+      *   **Limit/Avoid:** Common triggers like caffeine, alcohol, and spicy foods.
+  *   **Bone Health:**
+      *   Menopause increases osteoporosis risk due to lower estrogen.
+      *   **Increase Calcium:** Aim for calcium-rich foods like dairy (milk, yogurt, cheese), fortified plant-milks, leafy greens (kale, broccoli), and fish with edible bones (sardines).
+      *   **Ensure Vitamin D:** Essential for calcium absorption. Sources include sunlight, oily fish (salmon, mackerel), and fortified foods. A supplement may be necessary.
+  *   **Heart Health:**
+      *   **Focus on:** Omega-3 fatty acids from oily fish (2 portions/week), nuts, and seeds. Eat a variety of fruits and vegetables. Choose whole grains (oats, brown rice).
+      *   **Limit:** Saturated and trans fats, high-salt, and high-sugar processed foods.
+  *   **Weight Management:**
+      *   Metabolism can slow. Focus on portion control and a balanced diet rich in protein and fiber to promote fullness.
+  *   **Mood & Brain Fog:**
+      *   **Focus on:** B vitamins and complex carbohydrates (whole grains) for stable energy. Omega-3s are also important for brain health.
+
+  **2. General Well-being:**
+  *   **Hydration:** Drink plenty of water throughout the day. This can help with bloating and dry skin.
+  *   **Exercise:** Regular physical activity, including weight-bearing exercises (walking, dancing) and resistance training, is crucial for bone health, weight management, and mood.
+  *   **Lifestyle:** Reducing stress, getting enough sleep, and stopping smoking are highly beneficial.
+
+  You must base your answers on this provided knowledge base.
+  `,
+  prompt: `Here is the user's information:
+  Tracked Symptoms: {{{symptoms}}}
   Chat History: {{{chatHistory}}}
-  Question: {{{question}}}
   
-  Provide an informed, personalized response to the user question, taking into account the symptoms and chat history.
-  `,config: {
+  User's Question: "{{{question}}}"
+  
+  Provide an informed, personalized, and empathetic response to the user's question. Use the knowledge base and the user's specific data to formulate your answer.
+  `,
+  config: {
     safetySettings: [
       {
         category: 'HARM_CATEGORY_HATE_SPEECH',
