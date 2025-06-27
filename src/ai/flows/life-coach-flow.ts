@@ -40,7 +40,7 @@ Recent conversation:
 
 User says: "{{{userStatement}}}"
 
-Based on their statement, what is one thoughtful, open-ended question you can ask to help them explore their feelings and find their own way forward?
+Based on their statement what is one thoughtful, open-ended question you can ask to help them explore their feelings and find their own way forward?
 `,
 });
 
