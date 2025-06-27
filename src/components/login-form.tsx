@@ -14,12 +14,15 @@ export function LoginForm() {
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setIsLoading(true);
+    
+    const name = (event.currentTarget.elements.namedItem("name") as HTMLInputElement).value;
 
     // Simulate API call for login
     setTimeout(() => {
       // In a real app, you would handle successful login from your auth provider
       // For now, we'll just set a flag in localStorage
       localStorage.setItem("isLoggedIn", "true");
+      localStorage.setItem("username", name);
       setIsLoading(false);
       router.push("/");
     }, 1000);
@@ -27,6 +30,16 @@ export function LoginForm() {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
+       <div className="space-y-2">
+        <Label htmlFor="name">Your Name</Label>
+        <Input
+          id="name"
+          placeholder="e.g., Jane"
+          required
+          defaultValue="Jane"
+          disabled={isLoading}
+        />
+      </div>
       <div className="space-y-2">
         <Label htmlFor="email">Email</Label>
         <Input
