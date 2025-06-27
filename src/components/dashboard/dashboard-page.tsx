@@ -2,7 +2,6 @@
 
 import { Button } from "@/components/ui/button";
 import { HeartPulse, TestTube } from "lucide-react";
-import { CommunityEvents } from "./community-events";
 import { Recommendations } from "./recommendations";
 import { WeatherWidget } from "./weather-widget";
 import { SymptomTracker } from "./symptom-tracker";
@@ -17,6 +16,7 @@ import {
 import { AgentTester } from "../agent-tester";
 import { ScrollArea } from "../ui/scroll-area";
 import { NutritionCorner } from "./nutrition-corner";
+import { CommunityHub } from "./community-hub";
 
 export function DashboardPage({ username }: { username?: string }) {
   return (
@@ -78,7 +78,7 @@ export function DashboardPage({ username }: { username?: string }) {
         <div className="space-y-8">
           <WeatherWidget />
           <NutritionCorner />
-          <CommunityEvents />
+          <CommunityHub />
         </div>
       </div>
     </div>
