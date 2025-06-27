@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState } from "react";
@@ -19,31 +20,69 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { ScrollArea } from "../ui/scroll-area";
+import { Textarea } from "../ui/textarea";
 
-const initialDiscussions = [
+interface Reply {
+    author: string;
+    authorInitial: string;
+    content: string;
+    timestamp: string;
+}
+
+interface Discussion {
+    id: number;
+    title: string;
+    category: string;
+    author: string;
+    authorInitial: string;
+    repliesCount: number;
+    lastReply: string;
+    replies: Reply[];
+}
+
+const initialDiscussions: Discussion[] = [
     {
+        id: 1,
         title: "What are your go-to remedies for hot flashes?",
         category: "Symptom Management",
         author: "Sarah J.",
-        replies: 12,
-        lastReply: "2h ago",
         authorInitial: "SJ",
+        repliesCount: 2,
+        lastReply: "2h ago",
+        replies: [
+            { author: "Maria G.", authorInitial: "MG", content: "I've found that dressing in layers helps a lot!", timestamp: "4h ago" },
+            { author: "Chloe T.", authorInitial: "CT", content: "Black cohosh supplements have been a game-changer for me, but check with your doctor first.", timestamp: "3h ago" },
+        ]
     },
     {
+        id: 2,
         title: "Feeling so much brain fog at work lately. Any tips?",
         category: "Work & Life",
         author: "Maria G.",
-        replies: 8,
-        lastReply: "5h ago",
         authorInitial: "MG",
+        repliesCount: 1,
+        lastReply: "5h ago",
+        replies: [
+             { author: "Sarah J.", authorInitial: "SJ", content: "I feel you! I started doing puzzles during my lunch break and it seems to help sharpen my focus.", timestamp: "6h ago" },
+        ]
     },
     {
+        id: 3,
         title: "Share your favorite menopause-friendly recipes!",
         category: "Nutrition",
         author: "Chloe T.",
-        replies: 25,
-        lastReply: "1d ago",
         authorInitial: "CT",
+        repliesCount: 0,
+        lastReply: "1d ago",
+        replies: []
     }
 ];
 
@@ -68,28 +107,63 @@ const events = [
   },
 ];
 
+const categories = ["Symptom Management", "Nutrition", "Work & Life", "Fitness", "Mental Wellness"];
+
 export function CommunityHub() {
   const [discussions, setDiscussions] = useState(initialDiscussions);
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [isNewTopicDialogOpen, setIsNewTopicDialogOpen] = useState(false);
+  const [newTopicTitle, setNewTopicTitle] = useState("");
+  const [newTopicCategory, setNewTopicCategory] = useState("");
+  const [selectedDiscussion, setSelectedDiscussion] = useState<Discussion | null>(null);
+  const [newReply, setNewReply] = useState("");
 
-  const handleNewDiscussion = (event: React.FormEvent<HTMLFormElement>) => {
+  const handleNewDiscussionSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    const formData = new FormData(event.currentTarget);
-    const title = formData.get("title") as string;
-    const category = formData.get("category") as string;
-
-    if (title && category) {
+    if (newTopicTitle && newTopicCategory) {
       const newDiscussion = {
-        title,
-        category,
+        id: discussions.length + 1,
+        title: newTopicTitle,
+        category: newTopicCategory,
         author: "Jane D.", // Placeholder for current user
-        replies: 0,
+        repliesCount: 0,
         lastReply: "Just now",
         authorInitial: "JD",
+        replies: [],
       };
       setDiscussions([newDiscussion, ...discussions]);
-      setIsDialogOpen(false);
+      setIsNewTopicDialogOpen(false);
+      setNewTopicTitle("");
+      setNewTopicCategory("");
     }
+  };
+
+  const handleReplySubmit = (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    if (!newReply.trim() || !selectedDiscussion) return;
+
+    const reply: Reply = {
+      author: "Jane D.", // Placeholder
+      authorInitial: "JD",
+      content: newReply,
+      timestamp: "Just now"
+    };
+
+    const updatedDiscussions = discussions.map(d => {
+      if (d.id === selectedDiscussion.id) {
+        const updatedReplies = [...d.replies, reply];
+        return {
+          ...d,
+          replies: updatedReplies,
+          repliesCount: updatedReplies.length,
+          lastReply: "Just now"
+        };
+      }
+      return d;
+    });
+
+    setDiscussions(updatedDiscussions);
+    setSelectedDiscussion(prev => prev ? { ...prev, replies: [...prev.replies, reply], repliesCount: prev.replies.length + 1 } : null);
+    setNewReply("");
   };
 
   return (
@@ -100,7 +174,7 @@ export function CommunityHub() {
             <CardTitle className="flex items-center gap-2"><Users /> Community Hub</CardTitle>
             <CardDescription>Connect, learn, and grow with others.</CardDescription>
           </div>
-          <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+          <Dialog open={isNewTopicDialogOpen} onOpenChange={setIsNewTopicDialogOpen}>
             <DialogTrigger asChild>
               <Button size="sm" variant="outline">
                 <PlusCircle className="mr-2" />
@@ -114,18 +188,21 @@ export function CommunityHub() {
                   Share your thoughts or questions with the community.
                 </DialogDescription>
               </DialogHeader>
-              <form onSubmit={handleNewDiscussion} className="grid gap-4 py-4">
-                <div className="grid grid-cols-4 items-center gap-4">
-                  <Label htmlFor="title" className="text-right">
-                    Title
-                  </Label>
-                  <Input id="title" name="title" className="col-span-3" placeholder="What's on your mind?" required />
+              <form onSubmit={handleNewDiscussionSubmit} className="grid gap-4 py-4">
+                <div className="space-y-2">
+                  <Label htmlFor="title">Title</Label>
+                  <Input id="title" name="title" value={newTopicTitle} onChange={(e) => setNewTopicTitle(e.target.value)} placeholder="What's on your mind?" required />
                 </div>
-                <div className="grid grid-cols-4 items-center gap-4">
-                  <Label htmlFor="category" className="text-right">
-                    Category
-                  </Label>
-                  <Input id="category" name="category" className="col-span-3" placeholder="e.g., Symptom Management" required />
+                <div className="space-y-2">
+                  <Label htmlFor="category">Category</Label>
+                  <Select name="category" required onValueChange={setNewTopicCategory} value={newTopicCategory}>
+                     <SelectTrigger>
+                        <SelectValue placeholder="Select a category" />
+                     </SelectTrigger>
+                     <SelectContent>
+                        {categories.map(cat => <SelectItem key={cat} value={cat}>{cat}</SelectItem>)}
+                     </SelectContent>
+                  </Select>
                 </div>
                  <DialogFooter>
                   <Button type="submit">Post Topic</Button>
@@ -141,9 +218,9 @@ export function CommunityHub() {
                 <TabsTrigger value="discussions">Discussions</TabsTrigger>
                 <TabsTrigger value="events">Events</TabsTrigger>
             </TabsList>
-            <TabsContent value="discussions" className="mt-4 space-y-4">
-                {discussions.map((discussion, index) => (
-                    <div key={index} className="flex items-start gap-4 p-2 rounded-lg hover:bg-muted transition-colors cursor-pointer">
+            <TabsContent value="discussions" className="mt-4 space-y-2">
+                {discussions.map((discussion) => (
+                    <div key={discussion.id} onClick={() => setSelectedDiscussion(discussion)} className="flex items-start gap-4 p-3 rounded-lg hover:bg-muted transition-colors cursor-pointer">
                         <Avatar>
                             <AvatarImage src={`https://placehold.co/40x40.png`} alt={discussion.author} data-ai-hint="profile picture" />
                             <AvatarFallback>{discussion.authorInitial}</AvatarFallback>
@@ -155,7 +232,7 @@ export function CommunityHub() {
                             </p>
                             <div className="flex items-center gap-2 text-xs text-muted-foreground mt-2">
                                 <MessageSquare className="w-3 h-3"/>
-                                <span>{discussion.replies} replies</span>
+                                <span>{discussion.repliesCount} replies</span>
                                 <span>&middot;</span>
                                 <span>Last reply {discussion.lastReply}</span>
                             </div>
@@ -185,6 +262,48 @@ export function CommunityHub() {
             </TabsContent>
         </Tabs>
       </CardContent>
+
+      {selectedDiscussion && (
+        <Dialog open={!!selectedDiscussion} onOpenChange={(isOpen) => !isOpen && setSelectedDiscussion(null)}>
+            <DialogContent className="sm:max-w-xl">
+                <DialogHeader>
+                    <DialogTitle>{selectedDiscussion.title}</DialogTitle>
+                    <DialogDescription>
+                        A discussion started by {selectedDiscussion.author} in <Badge variant="secondary">{selectedDiscussion.category}</Badge>
+                    </DialogDescription>
+                </DialogHeader>
+                <ScrollArea className="h-64 pr-6 -mr-6">
+                    <div className="space-y-4">
+                        {selectedDiscussion.replies.map((reply, index) => (
+                             <div key={index} className="flex items-start gap-3">
+                                <Avatar className="w-8 h-8 border">
+                                    <AvatarImage src={`https://placehold.co/40x40.png`} alt={reply.author} data-ai-hint="profile picture" />
+                                    <AvatarFallback>{reply.authorInitial}</AvatarFallback>
+                                </Avatar>
+                                <div className="flex-1 rounded-lg bg-muted p-3 text-sm">
+                                    <div className="flex justify-between items-center mb-1">
+                                        <p className="font-semibold">{reply.author}</p>
+                                        <p className="text-xs text-muted-foreground">{reply.timestamp}</p>
+                                    </div>
+                                    <p className="text-muted-foreground">{reply.content}</p>
+                                </div>
+                            </div>
+                        ))}
+                        {selectedDiscussion.replies.length === 0 && (
+                            <p className="text-center text-sm text-muted-foreground py-8">Be the first to reply!</p>
+                        )}
+                    </div>
+                </ScrollArea>
+                <DialogFooter className="flex-col items-stretch">
+                    <form onSubmit={handleReplySubmit} className="flex flex-col gap-2">
+                        <Label htmlFor="reply-text" className="sr-only">Your Reply</Label>
+                        <Textarea id="reply-text" placeholder="Write your reply..." value={newReply} onChange={(e) => setNewReply(e.target.value)} required />
+                        <Button type="submit">Post Reply</Button>
+                    </form>
+                </DialogFooter>
+            </DialogContent>
+        </Dialog>
+      )}
     </Card>
   );
 }
