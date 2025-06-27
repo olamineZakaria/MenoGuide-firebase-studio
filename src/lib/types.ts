@@ -4,3 +4,10 @@ export interface SymptomData {
   hotFlashes: string;
   otherSymptoms?: string;
 }
+
+export interface ProfileData {
+  username: string;
+  avatarUrl: string;
+  dietaryPreferences?: string;
+  menopauseNotes?: string;
+}

@@ -2,7 +2,6 @@
 
 import { Button } from "@/components/ui/button";
 import { HeartPulse, TestTube } from "lucide-react";
-import { CommunityEvents } from "./community-events";
 import { Recommendations } from "./recommendations";
 import { WeatherWidget } from "./weather-widget";
 import { SymptomTracker } from "./symptom-tracker";
@@ -17,14 +16,15 @@ import {
 import { AgentTester } from "../agent-tester";
 import { ScrollArea } from "../ui/scroll-area";
 import { NutritionCorner } from "./nutrition-corner";
+import { CommunityHub } from "./community-hub";
 
-export function DashboardPage() {
+export function DashboardPage({ username }: { username?: string }) {
   return (
     <div className="container mx-auto p-4 sm:p-6 lg:p-8 space-y-8">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <h1 className="text-3xl font-bold font-headline tracking-tight">
-            Hello, Welcome Back!
+            Hello, {username || "Welcome Back"}!
           </h1>
           <p className="text-muted-foreground">
             Here&apos;s your daily menopause wellness overview.
@@ -78,7 +78,7 @@ export function DashboardPage() {
         <div className="space-y-8">
           <WeatherWidget />
           <NutritionCorner />
-          <CommunityEvents />
+          <CommunityHub />
         </div>
       </div>
     </div>

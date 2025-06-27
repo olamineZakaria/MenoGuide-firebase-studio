@@ -8,11 +8,17 @@ import type { NutritionExpertOutput } from "@/ai/flows/nutrition-expert-flow";
 import { useSymptomStore } from "@/hooks/use-symptom-store";
 import { Alert, AlertDescription, AlertTitle } from "../ui/alert";
 import { Separator } from "../ui/separator";
+import { Button } from "../ui/button";
+import type { RecipeGeneratorOutput } from "@/ai/flows/recipe-generator-flow";
+import { generateRecipes } from "@/ai/flows/recipe-generator-flow";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "../ui/accordion";
 
 export function NutritionCorner() {
   const { symptoms } = useSymptomStore();
   const [advice, setAdvice] = useState<NutritionExpertOutput | null>(null);
+  const [recipes, setRecipes] = useState<RecipeGeneratorOutput | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [isRecipesLoading, setIsRecipesLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -42,6 +48,22 @@ export function NutritionCorner() {
     fetchAdvice();
   }, [symptoms]);
 
+  const handleGenerateRecipes = async () => {
+    if (!advice) return;
+    setIsRecipesLoading(true);
+    setRecipes(null);
+    try {
+      const ingredients = advice.recommendations.map(r => r.food);
+      const result = await generateRecipes({ ingredients, cuisine: "Moroccan" });
+      setRecipes(result);
+    } catch (e) {
+      console.error(e);
+      setError("Failed to generate recipes. Please try again later.");
+    } finally {
+      setIsRecipesLoading(false);
+    }
+  }
+
   const hasSymptoms = Object.values(symptoms).some(s => s && typeof s === 'string' && s.length > 0 && s !== "");
 
 
@@ -52,7 +74,7 @@ export function NutritionCorner() {
             <Salad />
             Nutrition Corner
         </CardTitle>
-        <CardDescription>Dietary advice based on your symptoms.</CardDescription>
+        <CardDescription>Dietary advice and recipes based on your symptoms.</CardDescription>
       </CardHeader>
       <CardContent>
         {isLoading && (
@@ -91,6 +113,50 @@ export function NutritionCorner() {
                     <h4 className="font-semibold mb-2 text-primary">General Advice</h4>
                     <p className="text-sm text-muted-foreground">{advice.generalAdvice}</p>
                 </div>
+                <Separator />
+                <div className="text-center pt-2">
+                    <Button onClick={handleGenerateRecipes} disabled={isRecipesLoading}>
+                        {isRecipesLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Salad className="mr-2 h-4 w-4" />}
+                        {isRecipesLoading ? "Generating Recipes..." : "Suggest Moroccan Recipes"}
+                    </Button>
+                </div>
+
+                {isRecipesLoading && (
+                    <div className="flex items-center justify-center py-4">
+                        <Loader2 className="h-5 w-5 animate-spin text-primary" />
+                        <p className="ml-3 text-sm text-muted-foreground">Stirring up some ideas...</p>
+                    </div>
+                )}
+                
+                {recipes && recipes.recipes.length > 0 && (
+                    <div className="mt-4 space-y-4">
+                        <h3 className="text-lg font-semibold text-center">Your Recipe Ideas</h3>
+                         <Accordion type="single" collapsible className="w-full">
+                            {recipes.recipes.map((recipe, index) => (
+                                <AccordionItem value={`item-${index}`} key={index}>
+                                    <AccordionTrigger>{recipe.title}</AccordionTrigger>
+                                    <AccordionContent>
+                                        <div className="space-y-4">
+                                            <div>
+                                                <h5 className="font-semibold mb-2">Ingredients</h5>
+                                                <ul className="list-disc list-inside space-y-1 text-sm text-muted-foreground">
+                                                    {recipe.ingredients.map((ing, i) => <li key={i}>{ing}</li>)}
+                                                </ul>
+                                            </div>
+                                            <div>
+                                                <h5 className="font-semibold mb-2">Instructions</h5>
+                                                <ol className="list-decimal list-inside space-y-2 text-sm text-muted-foreground">
+                                                    {recipe.instructions.map((step, i) => <li key={i}>{step}</li>)}
+                                                </ol>
+                                            </div>
+                                        </div>
+                                    </AccordionContent>
+                                </AccordionItem>
+                            ))}
+                        </Accordion>
+                    </div>
+                )}
+
             </div>
         )}
       </CardContent>
