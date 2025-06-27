@@ -1,35 +1,26 @@
 "use client";
 
+import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import Image from "next/image";
-import { ArrowRight, Users, MessageSquare } from "lucide-react";
+import { ArrowRight, Users, MessageSquare, PlusCircle } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 import { Badge } from "../ui/badge";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 
-const events = [
-  {
-    title: "Mindful Menopause Workshop",
-    date: "October 26, 2024",
-    description: "Join us for a workshop on mindfulness techniques to manage stress.",
-    imageHint: "workshop yoga"
-  },
-  {
-    title: "Nutrition for Menopause Webinar",
-    date: "November 12, 2024",
-    description: "Learn about the best foods to support your body during menopause.",
-    imageHint: "healthy food"
-  },
-  {
-    title: "Local Meetup: Walk & Talk",
-    date: "November 18, 2024",
-    description: "Connect with others in your community for a refreshing walk.",
-    imageHint: "women walking"
-  },
-];
-
-const discussions = [
+const initialDiscussions = [
     {
         title: "What are your go-to remedies for hot flashes?",
         category: "Symptom Management",
@@ -56,13 +47,93 @@ const discussions = [
     }
 ];
 
+const events = [
+  {
+    title: "Mindful Menopause Workshop",
+    date: "October 26, 2024",
+    description: "Join us for a workshop on mindfulness techniques to manage stress.",
+    imageHint: "workshop yoga"
+  },
+  {
+    title: "Nutrition for Menopause Webinar",
+    date: "November 12, 2024",
+    description: "Learn about the best foods to support your body during menopause.",
+    imageHint: "healthy food"
+  },
+  {
+    title: "Local Meetup: Walk & Talk",
+    date: "November 18, 2024",
+    description: "Connect with others in your community for a refreshing walk.",
+    imageHint: "women walking"
+  },
+];
 
 export function CommunityHub() {
+  const [discussions, setDiscussions] = useState(initialDiscussions);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+
+  const handleNewDiscussion = (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    const formData = new FormData(event.currentTarget);
+    const title = formData.get("title") as string;
+    const category = formData.get("category") as string;
+
+    if (title && category) {
+      const newDiscussion = {
+        title,
+        category,
+        author: "Jane D.", // Placeholder for current user
+        replies: 0,
+        lastReply: "Just now",
+        authorInitial: "JD",
+      };
+      setDiscussions([newDiscussion, ...discussions]);
+      setIsDialogOpen(false);
+    }
+  };
+
   return (
     <Card className="shadow-lg">
       <CardHeader>
-        <CardTitle className="flex items-center gap-2"><Users /> Community Hub</CardTitle>
-        <CardDescription>Connect, learn, and grow with others.</CardDescription>
+        <div className="flex justify-between items-center">
+          <div>
+            <CardTitle className="flex items-center gap-2"><Users /> Community Hub</CardTitle>
+            <CardDescription>Connect, learn, and grow with others.</CardDescription>
+          </div>
+          <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+            <DialogTrigger asChild>
+              <Button size="sm" variant="outline">
+                <PlusCircle className="mr-2" />
+                New Topic
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-[425px]">
+              <DialogHeader>
+                <DialogTitle>Start a New Discussion</DialogTitle>
+                <DialogDescription>
+                  Share your thoughts or questions with the community.
+                </DialogDescription>
+              </DialogHeader>
+              <form onSubmit={handleNewDiscussion} className="grid gap-4 py-4">
+                <div className="grid grid-cols-4 items-center gap-4">
+                  <Label htmlFor="title" className="text-right">
+                    Title
+                  </Label>
+                  <Input id="title" name="title" className="col-span-3" placeholder="What's on your mind?" required />
+                </div>
+                <div className="grid grid-cols-4 items-center gap-4">
+                  <Label htmlFor="category" className="text-right">
+                    Category
+                  </Label>
+                  <Input id="category" name="category" className="col-span-3" placeholder="e.g., Symptom Management" required />
+                </div>
+                 <DialogFooter>
+                  <Button type="submit">Post Topic</Button>
+                </DialogFooter>
+              </form>
+            </DialogContent>
+          </Dialog>
+        </div>
       </CardHeader>
       <CardContent>
         <Tabs defaultValue="discussions" className="w-full">
