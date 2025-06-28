@@ -32,7 +32,7 @@ export async function POST(request: NextRequest) {
     const prompt = buildWeatherAdvicePrompt(weather, userContext);
 
     // Call Google AI API directly
-    const apiKey = process.env.GOOGLE_AI_API_KEY || 'AIzaSyAdsxYKprtGR6wf_ofOY1FhQj9C0_sEyw8';
+    const apiKey = process.env.GOOGLE_AI_API_KEY;
     const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent?key=${apiKey}`,
       {
         method: 'POST',
