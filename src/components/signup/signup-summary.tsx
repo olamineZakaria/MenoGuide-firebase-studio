@@ -12,10 +12,12 @@ import {
   Settings, 
   Edit, 
   CheckCircle,
-  Loader2 
+  Loader2,
+  Info
 } from "lucide-react";
 import { format } from "date-fns";
 import { SignupData } from "@/lib/types";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 interface SignupSummaryProps {
   data: SignupData;
@@ -267,8 +269,17 @@ export function SignupSummary({ data, onEdit, onComplete, isLoading }: SignupSum
         </CardContent>
       </Card>
 
+      {/* Data Storage Disclaimer */}
+      <Alert className="bg-blue-50 border-blue-200 text-blue-800 [&>svg]:text-blue-600">
+        <Info className="h-4 w-4" />
+        <AlertTitle className="font-semibold">Data Storage Disclaimer</AlertTitle>
+        <AlertDescription className="text-xs">
+          Please note: For this prototype, all data you provide is stored securely in your browser's local storage and is not sent to a remote server.
+        </AlertDescription>
+      </Alert>
+
       {/* Complete Button */}
-      <div className="flex justify-center pt-6">
+      <div className="flex justify-center pt-4">
         <Button
           onClick={onComplete}
           disabled={isLoading}
@@ -290,4 +301,4 @@ export function SignupSummary({ data, onEdit, onComplete, isLoading }: SignupSum
       </div>
     </div>
   );
-} 
+}
